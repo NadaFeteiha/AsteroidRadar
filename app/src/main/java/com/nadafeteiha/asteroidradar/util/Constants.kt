@@ -10,6 +10,6 @@ object Constants {
     const val REFRESH_DATA_WORKER = "RefreshDataWorker"
 
     const val BASE_URL = "https://api.nasa.gov/" //"https://mars.udacity.com/"//
-    const val API_KEY = "c4OrHAapddvxVVz7gcewMBUlwrXmnVS6GtkB26hz"
+    const val API_KEY = "ADD_YOUR_API_HERE"
 
 }
