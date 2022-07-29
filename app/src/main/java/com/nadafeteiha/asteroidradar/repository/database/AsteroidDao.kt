@@ -2,8 +2,8 @@ package com.nadafeteiha.asteroidradar.repository.database
 
 import androidx.lifecycle.LiveData
 import androidx.room.*
-import com.nadafeteiha.asteroidradar.domain.Asteroid
 import com.nadafeteiha.asteroidradar.util.Constants
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface AsteroidDao {
@@ -16,11 +16,17 @@ interface AsteroidDao {
     @Query("DELETE FROM ${Constants.ASTEROID_TABLE_NAME}")
     suspend fun clear()
 
-    @Query("SELECT * FROM  ${Constants.ASTEROID_TABLE_NAME}")
-    fun getAllAsteroid(): LiveData<List<AsteroidEntity>>
+    @Query("SELECT * FROM  ${Constants.ASTEROID_TABLE_NAME} ORDER BY closeApproachDate ASC")
+    fun getAllAsteroid(): Flow<List<AsteroidEntity>>
 
     @Query("SELECT * FROM  ${Constants.ASTEROID_TABLE_NAME} WHERE closeApproachDate >= :today ORDER BY closeApproachDate DESC")
-    fun getAllAsteroidTodayOnwards(today: String): LiveData<List<AsteroidEntity>>
+    fun getAllAsteroidTodayOnwards(today: String): Flow<List<AsteroidEntity>>
+
+    @Query("SELECT * FROM  ${Constants.ASTEROID_TABLE_NAME} WHERE closeApproachDate == :today ORDER BY closeApproachDate DESC")
+    fun getTodayAsteroid(today: String): Flow<List<AsteroidEntity>>
+
+    @Query("SELECT * FROM  ${Constants.ASTEROID_TABLE_NAME} WHERE closeApproachDate < :today ORDER BY closeApproachDate DESC")
+    fun getSavedBeforeTodayAsteroid(today: String): Flow<List<AsteroidEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertAll(vararg asteroid: AsteroidEntity)

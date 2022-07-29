@@ -9,7 +9,9 @@ object Constants {
     const val ASTEROID_DATABASE_NAME = "asteroid_database"
     const val REFRESH_DATA_WORKER = "RefreshDataWorker"
 
-    const val BASE_URL = "https://api.nasa.gov/" //"https://mars.udacity.com/"//
-    const val API_KEY = "ADD_YOUR_API_HERE"
+    const val BASE_URL = "https://api.nasa.gov/"
+    const val API_KEY = "API_KEY"
 
+    const val NEXT_WEEK = 0
+    const val LAST_WEEK = 1
 }

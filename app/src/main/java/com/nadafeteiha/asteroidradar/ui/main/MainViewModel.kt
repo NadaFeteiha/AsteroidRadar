@@ -2,8 +2,12 @@ package com.nadafeteiha.asteroidradar.ui.main
 
 import android.app.Application
 import androidx.lifecycle.*
+import com.nadafeteiha.asteroidradar.domain.Asteroid
 import com.nadafeteiha.asteroidradar.repository.database.getDatabase
 import com.nadafeteiha.asteroidradar.repository.AsteroidRepository
+import com.nadafeteiha.asteroidradar.repository.api.asDomainModel
+import com.nadafeteiha.asteroidradar.util.getNextSevenDaysFormattedDates
+import com.nadafeteiha.asteroidradar.util.getToday
 import kotlinx.coroutines.launch
 import java.lang.Exception
 
@@ -16,16 +20,24 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _status = MutableLiveData<ApiStatus>()
     val status: LiveData<ApiStatus>
         get() = _status
+    private var _showEvent = MutableLiveData<Boolean?>()
+    val showEvent: LiveData<Boolean?>
+        get() = _showEvent
 
-    val asteroidList = asteroidRepository.asteroid
+    private val _asteroidList = MutableLiveData<List<Asteroid>>()
+    val asteroidsList: LiveData<List<Asteroid>>
+        get() = _asteroidList
+
     val pictureOfDay = asteroidRepository.pictureOfDay
 
     init {
-        getAsteroidData()
+        showAllAsteroid()
+        updateAsteroidData()
         getPictureOfDay()
     }
 
-    private fun getAsteroidData() {
+    private fun updateAsteroidData() {
+        setShowEvent()
         _status.value = ApiStatus.LOADING
         viewModelScope.launch {
             try {
@@ -41,19 +53,56 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             try {
                 asteroidRepository.refreshPictureOfTheDay()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
 
             }
         }
     }
 
-    class Factory(val app: Application) : ViewModelProvider.Factory {
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
-                @Suppress("UNCHECKED_CAST")
-                return MainViewModel(app) as T
-            }
-            throw IllegalArgumentException("Error in Factory ViewModel")
+    fun showNextWeekAsteroid() {
+        viewModelScope.launch {
+            val week = getNextSevenDaysFormattedDates()
+            database.asteroidDao.getAllAsteroidTodayOnwards(week.first())
+                .collect { asteroids ->
+                    _asteroidList.value = asteroids.asDomainModel()
+                }
         }
     }
+
+    private fun showAllAsteroid() {
+        viewModelScope.launch {
+            database.asteroidDao.getAllAsteroidTodayOnwards(getToday())
+                .collect { asteroids ->
+                    _asteroidList.value = asteroids.asDomainModel()
+                }
+        }
+    }
+
+    fun showSavedAsteroid() {
+        viewModelScope.launch {
+            database.asteroidDao.getSavedBeforeTodayAsteroid(getToday())
+                .collect { asteroids ->
+                    _asteroidList.value = asteroids.asDomainModel()
+                }
+        }
+    }
+
+    fun showTodayAsteroid() {
+        viewModelScope.launch {
+            database.asteroidDao.getTodayAsteroid(getToday())
+                .collect { asteroids ->
+                    _asteroidList.value = asteroids.asDomainModel()
+                }
+        }
+    }
+
+    fun doneShowEvent() {
+        _showEvent.value = null
+    }
+
+    fun setShowEvent() {
+        _showEvent.value = true
+
+    }
+
 }

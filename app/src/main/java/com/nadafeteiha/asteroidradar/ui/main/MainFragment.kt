@@ -10,6 +10,7 @@ import com.nadafeteiha.asteroidradar.R
 import com.nadafeteiha.asteroidradar.domain.Asteroid
 import com.nadafeteiha.asteroidradar.databinding.FragmentMainBinding
 import com.nadafeteiha.asteroidradar.ui.AsteroidAdapter
+import com.nadafeteiha.asteroidradar.util.snack
 
 
 class MainFragment : Fragment(), AsteroidAdapter.OnClickListener {
@@ -17,10 +18,7 @@ class MainFragment : Fragment(), AsteroidAdapter.OnClickListener {
     private lateinit var binding: FragmentMainBinding
     private lateinit var adapter: AsteroidAdapter
     private val viewModel: MainViewModel by lazy {
-        ViewModelProvider(
-            this,
-            MainViewModel.Factory(requireActivity().application)
-        )[MainViewModel::class.java]
+        ViewModelProvider(this).get(MainViewModel::class.java)
     }
 
     override fun onCreateView(
@@ -37,6 +35,28 @@ class MainFragment : Fragment(), AsteroidAdapter.OnClickListener {
         adapter = AsteroidAdapter(this)
         binding.asteroidRecycler.adapter = adapter
 
+        viewModel.asteroidsList.observe(viewLifecycleOwner) { asteroids ->
+            if (asteroids != null) {
+                adapter.submitList(asteroids)
+            }
+        }
+        viewModel.status.observe(viewLifecycleOwner) { displayStatus ->
+            if (viewModel.showEvent.value == true)
+                when (displayStatus) {
+                    ApiStatus.LOADING -> {
+                        requireView().snack(resources.getString(R.string.updating_data))
+                    }
+                    ApiStatus.ERROR -> {
+                        requireView().snack(resources.getString(R.string.Error_data))
+                        viewModel.doneShowEvent()
+                    }
+                    else -> {
+                        requireView().snack(resources.getString(R.string.done_data))
+                        viewModel.doneShowEvent()
+                    }
+                }
+        }
+
         setHasOptionsMenu(true)
 
         return binding.root
@@ -50,6 +70,15 @@ class MainFragment : Fragment(), AsteroidAdapter.OnClickListener {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
+            R.id.show_today_menu -> {
+                viewModel.showTodayAsteroid()
+            }
+            R.id.show_next_week -> {
+                viewModel.showNextWeekAsteroid()
+            }
+            R.id.show_all_asteroids_menu -> {
+                viewModel.showSavedAsteroid()
+            }
         }
         return true
     }

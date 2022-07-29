@@ -12,6 +12,7 @@ import com.nadafeteiha.asteroidradar.domain.Asteroid
 import com.nadafeteiha.asteroidradar.domain.PictureOfDay
 import com.nadafeteiha.asteroidradar.ui.AsteroidAdapter
 import com.nadafeteiha.asteroidradar.ui.main.ApiStatus
+import com.nadafeteiha.asteroidradar.util.snack
 import com.squareup.picasso.MemoryPolicy
 import com.squareup.picasso.NetworkPolicy
 import com.squareup.picasso.Picasso
@@ -20,8 +21,12 @@ import com.squareup.picasso.Picasso
 fun bindAsteroidStatusImage(imageView: ImageView, isHazardous: Boolean) {
     if (isHazardous) {
         imageView.setImageResource(R.drawable.ic_status_potentially_hazardous)
+        imageView.contentDescription =
+            imageView.context.getString(R.string.potentially_hazardous_asteroid_image)
     } else {
         imageView.setImageResource(R.drawable.ic_status_normal)
+        imageView.contentDescription =
+            imageView.context.getString(R.string.not_hazardous_asteroid_image)
     }
 }
 
@@ -66,25 +71,22 @@ fun bindImageView(imgView: ImageView, imageData: PictureOfDay?) {
                 .placeholder(R.drawable.loading_animation)
                 .error(R.drawable.ic_broken_image)
                 .into(imgView)
+            imgView.contentDescription = String.format(
+                imageData.title,
+                imgView.context.getString(R.string.image_of_the_day_url)
+            )
         }
     } else {
         imgView.setImageResource(R.drawable.ic_broken_image)
+        imgView.contentDescription = imgView.context.getString(R.string.image_of_the_day)
     }
+
 }
 
-@BindingAdapter("listAsteroid","visibilityRecycler")
-fun bindRecyclerView(recyclerView: RecyclerView, data: List<Asteroid>?, status: ApiStatus) {
+@BindingAdapter("listAsteroid")
+fun bindRecyclerView(recyclerView: RecyclerView, data: List<Asteroid>?) {
     val adapter = recyclerView.adapter as AsteroidAdapter
     adapter.submitList(data)
-
-    when (status) {
-        ApiStatus.LOADING -> {
-            recyclerView.visibility = View.GONE
-        }
-        else -> {
-            recyclerView.visibility = View.VISIBLE
-        }
-    }
 }
 
 @BindingAdapter("visibilityProgress")
